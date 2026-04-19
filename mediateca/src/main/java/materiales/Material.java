@@ -44,6 +44,25 @@ public abstract class Material {
         );
     }
 
+    public static boolean hayUnidades(String codigo, Conexion conexion) {
+        int unidades;
+        ResultSet result;
+        result = conexion.ejecutarInstruccion("SELECT numeroUnidades FROM unidad WHERE idMaterial = \"" + codigo + "\";");
+        try {
+            if (!result.next()) {
+                unidades = 0;
+            } else {
+                unidades = result.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        if (unidades > 0) {
+            return true;
+        }
+        return false;
+    }
+
     public static boolean estaEnBD(String codigo, Conexion conexion) {
         ResultSet result;
         result = conexion.ejecutarInstruccion("SELECT * FROM material WHERE idMaterial = \"" + codigo + "\";");

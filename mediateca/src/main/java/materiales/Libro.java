@@ -95,24 +95,14 @@ public class Libro extends MaterialEscrito {
         return campos;
     }
 
-    public static boolean validarDatos(JTextField[] input, List<String> problems, Conexion conexion) {
+    public static boolean validarDatos(JTextField[] input, List<String> problems, Conexion conexion, boolean strict) {
         String codigo = input[0].getText().trim(), titulo = input[1].getText().trim();
         String autor = input[2].getText().trim();
 
-        int unidades;
-        ResultSet result;
-        result = conexion.ejecutarInstruccion("SELECT numeroUnidades FROM unidad WHERE idMaterial = \"" + codigo + "\";");
-        try {
-            if (!result.next()) {
-                unidades = 0;
-            } else {
-                unidades = result.getInt(1);
+        if (!strict) {
+            if (hayUnidades(codigo, conexion)) {
+                return true;
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        if (unidades > 0) {
-            return true;
         }
 
         boolean ans = MaterialEscrito.validarDatos(codigo, titulo, problems);
