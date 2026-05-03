@@ -1,6 +1,7 @@
 package gui;
 
 import conexion.Conexion;
+import java.awt.event.ActionEvent;
 import materiales.*;
 
 import usuario.Usuario;
@@ -402,12 +403,17 @@ public class GUIAdministrador {
         mainFrame.setVisible(true);
     }
 
-    private void borrarMaterial() {
+    private void borrarMaterial(tipoDato tipo) {
         reset();
 
         List<String> textoLabels = List.of("");
         List<String> textoBotones = List.of("Eliminar", "Volver");
-        List<String> textoInputs = List.of("Ingrese el código del material a eliminar (ej: LIB00001)");
+        List<String> textoInputs;
+        if (tipo == tipoDato.USUARIO) {
+            textoInputs = List.of("Ingrese el carnet del usuario a eliminar (ej: xy123456)");
+        } else {
+            textoInputs = List.of("Ingrese el código del material a eliminar (ej: LIB00001)");
+        }
 
         JButton[] botones = new JButton[textoBotones.size()];
         JLabel[] labels = new JLabel[textoLabels.size()];
@@ -422,7 +428,7 @@ public class GUIAdministrador {
         });
 
         // Boton eliminar
-        botones[0].addActionListener(_ -> {
+        botones[0].addActionListener((ActionEvent _) -> {
             String codigo = input[0].getText().trim();
 
             if (codigo.isEmpty()) {
@@ -432,17 +438,24 @@ public class GUIAdministrador {
                 return;
             }
 
-            if (!Material.estaEnBD(codigo, conexion)) {
+            String codigoTexto = "codigo";
+            String materialTexto = "material";
+            
+            if (tipo == tipoDato.USUARIO) {
+                codigoTexto = "carnet";
+                materialTexto = "usuario";
+            }
+            if (!Usuario.estaEnBD(codigo, conexion) && !Material.estaEnBD(codigo, conexion)) {
                 JOptionPane.showMessageDialog(mainFrame,
-                        "No existe ningún material con el codigo:\n" + codigo,
-                        "Material no encontrado",
+                        "No existe ningún " + materialTexto + " con el " + codigoTexto + ":\n" + codigo,
+                        materialTexto + " no encontrado",
                         JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             // Alerta antes de eliminar el material
             int confirm = JOptionPane.showConfirmDialog(mainFrame,
-                    "¿Esta completamente seguro de eliminar el material?\n\n"
+                    "¿Esta completamente seguro de eliminar el " + materialTexto + "?\n\n"
                     + "Codigo: " + codigo + "\n\n"
                     + "Esta acción NO se puede deshacer.",
                     "Confirmar Eliminación",
@@ -458,10 +471,11 @@ public class GUIAdministrador {
                     conexion.ejecutarInstruccionNoResult("DELETE FROM dvd WHERE idMaterial = '" + codigo + "'");
                     conexion.ejecutarInstruccionNoResult("DELETE FROM unidad WHERE idMaterial = '" + codigo + "'");
                     conexion.ejecutarInstruccionNoResult("DELETE FROM material WHERE idMaterial = '" + codigo + "'");
+                    conexion.ejecutarInstruccionNoResult("DELETE FROM usuarios WHERE carnet = '" + codigo + "'");
 
                     //mensaje de eliminacion
                     JOptionPane.showMessageDialog(mainFrame,
-                            "Material eliminado correctamente.\n\nCodigo: " + codigo,
+                            materialTexto + " eliminado correctamente.\n\n" + codigoTexto + ": " + codigo,
                             "Eliminacion Exitosa",
                             JOptionPane.INFORMATION_MESSAGE);
 
@@ -607,6 +621,64 @@ public class GUIAdministrador {
         sb.append("\n\nPuedes modificarlo o eliminarlo desde el menú principal.");
         return sb.toString();
     }
+    
+    private void listarUsuarios() {
+        List<String> textoLabels = List.of("Listado de usuarios");
+        List<String> textoBotones = List.of("Volver al Menú");
+        List<String> textoInputs = List.of();
+
+        JButton[] botones = new JButton[textoBotones.size()];
+        JLabel[] labels = new JLabel[textoLabels.size()];
+        JTextField[] input = new JTextField[textoInputs.size()];
+
+        addElementos(botones, textoBotones, labels, textoLabels, textoInputs, input);
+
+        List<List<String>> datos = new ArrayList<>();
+        try {
+            java.sql.ResultSet rs = conexion.ejecutarInstruccion(
+                    "SELECT carnet, nombre, rol, username "
+                    + "FROM usuarios"
+            );
+            while (rs.next()) {
+                datos.add(new ArrayList<>());
+                datos.get(0).add(rs.getString("carnet"));
+                datos.add(new ArrayList<>());
+                datos.get(1).add(rs.getString("nombre"));
+                datos.add(new ArrayList<>());
+                datos.get(2).add(rs.getString("rol"));
+                datos.add(new ArrayList<>());
+                datos.get(3).add(rs.getString("username"));
+            }
+        } catch (java.sql.SQLException ex) {
+            GUI.logger.error("error al cargar los datos de la bd", ex);
+        }
+        
+        String[] columnas = new String[]{"Carnet", "Nombre", "Rol", "Usuario"};
+        
+        int m = columnas.length;
+        int n = datos.get(0).size();
+        
+        String[][] data = new String[n][m];
+        
+        for (int fila = 0; fila < n; fila++) {
+            for (int columna = 0; columna < m; columna++) {
+                data[fila][columna] = datos.get(columna).get(fila);
+            }
+        }
+        
+        JTable tabla = new JTable(data, columnas);
+        
+        JScrollPane scrollPane = new JScrollPane(tabla);
+        
+        inputPanel.add(scrollPane);
+
+        botones[0].addActionListener(_ -> {
+            reset();
+            menuPrincipal();
+        });
+
+        mainFrame.setVisible(true);
+    }
 
     public void menuPrincipal() {
         List<String> textoLabels = List.of("Seleccione una de las siguientes opciones");
@@ -619,6 +691,7 @@ public class GUIAdministrador {
                         "Agregar Usuario",
                         "Modificar usuario",
                         "Borrar usuario",
+                        "Listar usuarios",
                         "Salir");
         List<String> textoInputs = List.of();
 
@@ -641,7 +714,7 @@ public class GUIAdministrador {
         });
         botones[3].addActionListener(_ -> {
             reset();
-            borrarMaterial();
+            borrarMaterial(tipoDato.LIBRO);
         });
         botones[4].addActionListener(_ -> {
             reset();
@@ -657,8 +730,18 @@ public class GUIAdministrador {
             reset();
             modificar(tipoDato.USUARIO);
         });
-
+        
+        botones[7].addActionListener(_ -> {
+            reset();
+            borrarMaterial(tipoDato.USUARIO);
+        });
+        
         botones[8].addActionListener(_ -> {
+            reset();
+            listarUsuarios();
+        });
+
+        botones[9].addActionListener(_ -> {
             reset();
             inicioDeSesion();
         });
