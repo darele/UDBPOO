@@ -75,7 +75,7 @@ public class GUIAdministrador {
                     writeOk = CD.validarDatos(input, problems, conexion, false);
                     break;
                 case DVD:
-                    writeOk = DVD.validarDatos(input, problems, conexion);
+                    writeOk = DVD.validarDatos(input, problems, conexion, false);
                     break;
                 case USUARIO:
                     writeOk = Usuario.validarDatos(input, problems, conexion, false);
@@ -281,7 +281,7 @@ public class GUIAdministrador {
                     writeOk = CD.validarDatos(input, problems, conexion, true);
                     break;
                 case DVD:
-                    writeOk = DVD.validarDatos(input, problems, conexion);
+                    writeOk = DVD.validarDatos(input, problems, conexion, true);
                     break;
                 case USUARIO:
                     writeOk = Usuario.validarDatos(input, problems, conexion, false);
@@ -293,54 +293,26 @@ public class GUIAdministrador {
                     Usuario usuario = new Usuario(input);
                     usuario.updateSelftoDB(conexion);
                 } else {
-                    String codigo = input[0].getText().trim();
-                    String titulo = input[1].getText().trim();
-
-                    conexion.ejecutarInstruccionNoResult("UPDATE material SET titulo = '" + titulo + "' WHERE idMaterial = '" + codigo + "';");
-
+                    Material material;
                     switch (tipo) {
                         case LIBRO:
-                            String autor = input[2].getText().trim();
-                            int numPaginas = Integer.parseInt(input[3].getText().trim());
-                            String editorialLib = input[4].getText().trim();
-                            String isbn = input[5].getText().trim();
-                            int anoPub = Integer.parseInt(input[6].getText().trim());
-                            conexion.ejecutarInstruccionNoResult(
-                                    "UPDATE libro SET autor = '" + autor + "', numPaginas = " + numPaginas
-                                    + ", editorial = '" + editorialLib + "', isbn = '" + isbn
-                                    + "', anoPublicacion = " + anoPub + " WHERE idMaterial = '" + codigo + "';"
-                            );
+                            material = new Libro(input);
                             break;
                         case REVISTA:
-                            String editorialRev = input[2].getText().trim();
-                            int periodicidad = Integer.parseInt(input[3].getText().trim());
-                            String fechaPub = input[4].getText().trim();
-                            conexion.ejecutarInstruccionNoResult(
-                                    "UPDATE revista SET editorial = '" + editorialRev + "', periodicidad = " + periodicidad
-                                    + ", fechaPublicacion = '" + fechaPub + "' WHERE idMaterial = '" + codigo + "';"
-                            );
+                            material = new Revista(input);
                             break;
                         case CD:
-                            String artista = input[2].getText().trim();
-                            String generoCD = input[3].getText().trim();
-                            int duracionCD = Integer.parseInt(input[4].getText().trim());
-                            int numCanciones = Integer.parseInt(input[5].getText().trim());
-                            conexion.ejecutarInstruccionNoResult(
-                                    "UPDATE cd SET artista = '" + artista + "', genero = '" + generoCD
-                                    + "', duracion = " + duracionCD + ", numeroCanciones = " + numCanciones
-                                    + " WHERE idMaterial = '" + codigo + "';"
-                            );
+                            material = new CD(input);
                             break;
                         case DVD:
-                            String director = input[2].getText().trim();
-                            int duracionDVD = Integer.parseInt(input[3].getText().trim());
-                            String generoDVD = input[4].getText().trim();
-                            conexion.ejecutarInstruccionNoResult(
-                                    "UPDATE dvd SET director = '" + director + "', duracion = " + duracionDVD
-                                    + ", genero = '" + generoDVD + "' WHERE idMaterial = '" + codigo + "';"
-                            );
+                            material = new DVD(input);
                             break;
+                        default:
+                            GUI.logger.warn(
+                                    "No se categorizo correctamente el material a modificar: {}", tipo);
+                            return;
                     }
+                    material.updateSelfToDB(conexion);
                 }
                 reset();
                 menuPrincipal();
@@ -440,7 +412,7 @@ public class GUIAdministrador {
 
             String codigoTexto = "codigo";
             String materialTexto = "material";
-            
+
             if (tipo == tipoDato.USUARIO) {
                 codigoTexto = "carnet";
                 materialTexto = "usuario";
@@ -621,7 +593,7 @@ public class GUIAdministrador {
         sb.append("\n\nPuedes modificarlo o eliminarlo desde el menú principal.");
         return sb.toString();
     }
-    
+
     private void listarUsuarios() {
         List<String> textoLabels = List.of("Listado de usuarios");
         List<String> textoBotones = List.of("Volver al Menú");
@@ -652,24 +624,24 @@ public class GUIAdministrador {
         } catch (java.sql.SQLException ex) {
             GUI.logger.error("error al cargar los datos de la bd", ex);
         }
-        
+
         String[] columnas = new String[]{"Carnet", "Nombre", "Rol", "Usuario"};
-        
+
         int m = columnas.length;
         int n = datos.get(0).size();
-        
+
         String[][] data = new String[n][m];
-        
+
         for (int fila = 0; fila < n; fila++) {
             for (int columna = 0; columna < m; columna++) {
                 data[fila][columna] = datos.get(columna).get(fila);
             }
         }
-        
+
         JTable tabla = new JTable(data, columnas);
-        
+
         JScrollPane scrollPane = new JScrollPane(tabla);
-        
+
         inputPanel.add(scrollPane);
 
         botones[0].addActionListener(_ -> {
@@ -730,12 +702,12 @@ public class GUIAdministrador {
             reset();
             modificar(tipoDato.USUARIO);
         });
-        
+
         botones[7].addActionListener(_ -> {
             reset();
             borrarMaterial(tipoDato.USUARIO);
         });
-        
+
         botones[8].addActionListener(_ -> {
             reset();
             listarUsuarios();

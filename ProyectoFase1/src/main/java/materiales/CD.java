@@ -10,13 +10,14 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
-public class CD extends MaterialAudiovisual{
+public class CD extends MaterialAudiovisual {
+
     private final String artista;
     private final int numeroCanciones;
     private static final String nombreTabla = "cd";
     private static final String prefijo = "CDA";
-    private static final List<String> campos =
-            List.of("Código", "Título", "Artista", "Genero",
+    private static final List<String> campos
+            = List.of("Código", "Título", "Artista", "Genero",
                     "Duracion", "Numero de Canciones");
 
     public CD(String codigo, Conexion conexion) {
@@ -37,7 +38,7 @@ public class CD extends MaterialAudiovisual{
                 GUI.logger.warn("No se pudo acceder a la revista con codigo: {}", codigo);
             }
         } catch (SQLException e) {
-            GUI.logger.error("error al ejecutar la instruccion: {}", instruccion,e);
+            GUI.logger.error("error al ejecutar la instruccion: {}", instruccion, e);
         }
         instruccion = "SELECT * FROM material WHERE idMaterial = \"" + codigo + "\";";
         result = conexion.ejecutarInstruccion(instruccion);
@@ -82,20 +83,20 @@ public class CD extends MaterialAudiovisual{
             GUI.logger.error("Error al ejecutar la instruccion: {}", instruccion, e);
         }
         if (unidades > 0) {
-            conexion.ejecutarInstruccionNoResult("UPDATE unidad SET " +
-                    "numeroUnidades=" + (unidades + 1) +
-                    " WHERE idMaterial=\"" + super.codigo + "\"");
+            conexion.ejecutarInstruccionNoResult("UPDATE unidad SET "
+                    + "numeroUnidades=" + (unidades + 1)
+                    + " WHERE idMaterial=\"" + super.codigo + "\"");
             return;
         }
         super.writeSelfToDB(conexion);
         conexion.ejecutarInstruccionNoResult(
-                "INSERT INTO unidad(numeroUnidades, idMaterial) " +
-                        "VALUES (" + (unidades + 1) + ",\"" + super.codigo + "\");"
+                "INSERT INTO unidad(numeroUnidades, idMaterial) "
+                + "VALUES (" + (unidades + 1) + ",\"" + super.codigo + "\");"
         );
         conexion.ejecutarInstruccionNoResult(
-                "INSERT INTO " + nombreTabla + "(artista, genero, duracion, numeroCanciones, idMaterial) " +
-                        "VALUES (\"" + artista + "\",\"" + super.genero + "\"," + super.duracion +
-                        "," + numeroCanciones + ",\"" + super.codigo + "\");"
+                "INSERT INTO " + nombreTabla + "(artista, genero, duracion, numeroCanciones, idMaterial) "
+                + "VALUES (\"" + artista + "\",\"" + super.genero + "\"," + super.duracion
+                + "," + numeroCanciones + ",\"" + super.codigo + "\");"
         );
     }
 
@@ -121,7 +122,7 @@ public class CD extends MaterialAudiovisual{
         String artista = input[2].getText().trim();
         String numeroCanciones = input[5].getText().trim();
 
-        if (!codigo.isEmpty() && !codigo.substring(0,3).equals(prefijo)) {
+        if (!codigo.isEmpty() && !codigo.substring(0, 3).equals(prefijo)) {
             ans = false;
             problems.add("El código para un CD debe empezar con " + prefijo);
         }
@@ -141,5 +142,15 @@ public class CD extends MaterialAudiovisual{
             problems.add("El campo Numero de Canciones debe ser un numero");
         }
         return ans;
+    }
+
+    @Override
+    public void updateSelfToDB(Conexion conexion) {
+        super.updateSelfToDB(conexion);
+        conexion.ejecutarInstruccionNoResult(
+                "UPDATE cd SET artista = '" + artista + "', genero = '" + genero
+                + "', duracion = " + duracion + ", numeroCanciones = " + numeroCanciones
+                + " WHERE idMaterial = '" + codigo + "';"
+        );
     }
 }

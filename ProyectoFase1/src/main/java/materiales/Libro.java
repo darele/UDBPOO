@@ -9,11 +9,12 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class Libro extends MaterialEscrito {
+
     private final String autor, isbn;
     private final int numeroPaginas, anoPublicacion;
     private static final String nombreTabla = "libro";
-    private static final List<String> campos =
-            List.of("Código", "Título", "Autor", "Número de Páginas",
+    private static final List<String> campos
+            = List.of("Código", "Título", "Autor", "Número de Páginas",
                     "editorial", "ISBN", "Año de Publicación");
 
     public Libro(String codigo, Conexion conexion) {
@@ -81,20 +82,20 @@ public class Libro extends MaterialEscrito {
             GUI.logger.error("Error de acceso", e);
         }
         if (unidades > 0) {
-            conexion.ejecutarInstruccionNoResult("UPDATE unidad SET " +
-                    "numeroUnidades=" + (unidades + 1) +
-                    " WHERE idMaterial=\"" + super.codigo + "\"");
+            conexion.ejecutarInstruccionNoResult("UPDATE unidad SET "
+                    + "numeroUnidades=" + (unidades + 1)
+                    + " WHERE idMaterial=\"" + super.codigo + "\"");
             return;
         }
         super.writeSelfToDB(conexion);
         conexion.ejecutarInstruccionNoResult(
-                "INSERT INTO unidad(numeroUnidades, idMaterial) " +
-                        "VALUES (" + (unidades + 1) + ",\"" + super.codigo + "\");"
+                "INSERT INTO unidad(numeroUnidades, idMaterial) "
+                + "VALUES (" + (unidades + 1) + ",\"" + super.codigo + "\");"
         );
         conexion.ejecutarInstruccionNoResult(
-                "INSERT INTO " + nombreTabla + "(autor, numPaginas, editorial, isbn, anoPublicacion, idMaterial) " +
-                        "VALUES (\"" + autor + "\",\"" + numeroPaginas + "\",\"" + super.editorial + "\",\"" + isbn +
-                        "\"," + anoPublicacion + ",\"" + super.codigo + "\");"
+                "INSERT INTO " + nombreTabla + "(autor, numPaginas, editorial, isbn, anoPublicacion, idMaterial) "
+                + "VALUES (\"" + autor + "\",\"" + numeroPaginas + "\",\"" + super.editorial + "\",\"" + isbn
+                + "\"," + anoPublicacion + ",\"" + super.codigo + "\");"
         );
     }
 
@@ -128,7 +129,7 @@ public class Libro extends MaterialEscrito {
             problems.add("El campo Año de Publicación debe ser un numero entero");
         }
 
-        if (!codigo.isEmpty() && !codigo.substring(0,3).equals("LIB")) {
+        if (!codigo.isEmpty() && !codigo.substring(0, 3).equals("LIB")) {
             ans = false;
             problems.add("El código para un libro debe empezar con LIB");
         }
@@ -155,5 +156,15 @@ public class Libro extends MaterialEscrito {
             problems.add("El campo ISBN espera únicamente dígitos");
         }
         return ans;
+    }
+
+    @Override
+    public void updateSelfToDB(Conexion conexion) {
+        super.updateSelfToDB(conexion);
+        conexion.ejecutarInstruccionNoResult(
+                "UPDATE libro SET autor = '" + autor + "', numPaginas = " + numeroPaginas
+                + ", editorial = '" + editorial + "', isbn = '" + isbn
+                + "', anoPublicacion = " + anoPublicacion + " WHERE idMaterial = '" + codigo + "';"
+        );
     }
 }

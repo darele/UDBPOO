@@ -74,4 +74,11 @@ public abstract class Material {
             return false;
         }
     }
+    
+    public void updateSelfToDB(Conexion conexion) {
+        conexion.ejecutarInstruccionNoResult(
+                "UPDATE material " +
+                "SET titulo='" + titulo + "';"
+        );
+    }
 }

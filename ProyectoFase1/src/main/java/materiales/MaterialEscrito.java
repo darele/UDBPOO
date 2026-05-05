@@ -20,4 +20,9 @@ public abstract class MaterialEscrito extends Material {
     public void writeSelfToDB(Conexion conexion) {
         super.writeSelfToDB(conexion);
     }
+    
+    @Override
+    public void updateSelfToDB(Conexion conexion) {
+        super.updateSelfToDB(conexion);
+    }
 }

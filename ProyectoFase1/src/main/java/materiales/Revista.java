@@ -11,12 +11,13 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 
 public class Revista extends MaterialEscrito {
+
     private final String fechaPublicacion;
     private final int periodicidad;
     private static final String nombreTabla = "revista";
     private static final String prefijo = "REV";
-    private static final List<String> campos =
-            List.of("Código", "Título", "Editorial", "Periodicidad",
+    private static final List<String> campos
+            = List.of("Código", "Título", "Editorial", "Periodicidad",
                     "Fecha de Publicación");
 
     public Revista(String codigo, Conexion conexion) {
@@ -78,20 +79,20 @@ public class Revista extends MaterialEscrito {
             GUI.logger.error("Error de acceso", e);
         }
         if (unidades > 0) {
-            conexion.ejecutarInstruccionNoResult("UPDATE unidad SET " +
-                    "numeroUnidades=" + (unidades + 1) +
-                    " WHERE idMaterial=\"" + super.codigo + "\"");
+            conexion.ejecutarInstruccionNoResult("UPDATE unidad SET "
+                    + "numeroUnidades=" + (unidades + 1)
+                    + " WHERE idMaterial=\"" + super.codigo + "\"");
             return;
         }
         super.writeSelfToDB(conexion);
         conexion.ejecutarInstruccionNoResult(
-                "INSERT INTO unidad(numeroUnidades, idMaterial) " +
-                        "VALUES (" + (unidades + 1) + ",\"" + super.codigo + "\");"
+                "INSERT INTO unidad(numeroUnidades, idMaterial) "
+                + "VALUES (" + (unidades + 1) + ",\"" + super.codigo + "\");"
         );
         conexion.ejecutarInstruccionNoResult(
-                "INSERT INTO " + nombreTabla + "(editorial, periodicidad, fechaPublicacion, idMaterial) " +
-                        "VALUES (\"" + super.editorial + "\"," + periodicidad + ",\"" +
-                        fechaPublicacion + "\",\"" + super.codigo + "\");"
+                "INSERT INTO " + nombreTabla + "(editorial, periodicidad, fechaPublicacion, idMaterial) "
+                + "VALUES (\"" + super.editorial + "\"," + periodicidad + ",\""
+                + fechaPublicacion + "\",\"" + super.codigo + "\");"
         );
     }
 
@@ -120,11 +121,10 @@ public class Revista extends MaterialEscrito {
         }
         String editorial = input[2].getText().trim();
 
-        if (!codigo.isEmpty() && !codigo.substring(0,3).equals(prefijo)) {
+        if (!codigo.isEmpty() && !codigo.substring(0, 3).equals(prefijo)) {
             ans = false;
             problems.add("El código para una revista debe empezar con " + prefijo);
         }
-
 
         if (editorial.isEmpty()) {
             ans = false;
@@ -142,5 +142,14 @@ public class Revista extends MaterialEscrito {
             problems.add("La fecha de publicacion se debe establecer en formato aaaa-mm-dd");
         }
         return ans;
+    }
+
+    @Override
+    public void updateSelfToDB(Conexion conexion) {
+        super.updateSelfToDB(conexion);
+        conexion.ejecutarInstruccionNoResult(
+                "UPDATE revista SET editorial = '" + editorial + "', periodicidad = " + periodicidad
+                + ", fechaPublicacion = '" + fechaPublicacion + "' WHERE idMaterial = '" + codigo + "';"
+        );
     }
 }
