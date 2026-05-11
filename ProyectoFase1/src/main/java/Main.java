@@ -64,9 +64,12 @@ public class Main {
         conexion.ejecutarInstruccionNoResult(
                 "CREATE TABLE IF NOT EXISTS material(" +
                         "idMaterial VARCHAR(8) PRIMARY KEY," +
-                        "titulo VARCHAR(45) NOT NULL" +
+                        "titulo VARCHAR(45) NOT NULL,"
+                        + "numero_clasificacion INT NOT NULL,"
+                        + "codigo_ubicacion INT NOT NULL" +
                         ");"
         );
+        
         conexion.ejecutarInstruccionNoResult(
                 "CREATE TABLE IF NOT EXISTS unidad(" +
                         "numeroUnidades INT," +
@@ -105,6 +108,14 @@ public class Main {
                         "director VARCHAR(45) NOT NULL," +
                         "duracion INT," +
                         "genero VARCHAR(45)," +
+                        "idMaterial VARCHAR(8) REFERENCES material(idMaterial)" +
+                        ");"
+        );
+        conexion.ejecutarInstruccionNoResult(
+                "CREATE TABLE IF NOT EXISTS tesis(" +
+                        "autor VARCHAR(45) NOT NULL," +
+                        "carrera VARCHAR(45) NOT NULL," +
+                        "ano_publicacion INT," +
                         "idMaterial VARCHAR(8) REFERENCES material(idMaterial)" +
                         ");"
         );

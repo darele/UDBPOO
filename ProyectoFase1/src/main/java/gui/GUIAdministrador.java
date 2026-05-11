@@ -8,6 +8,8 @@ import usuario.Usuario;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +25,7 @@ public class GUIAdministrador {
         REVISTA,
         CD,
         DVD,
+        TESIS,
         USUARIO
     }
 
@@ -77,6 +80,9 @@ public class GUIAdministrador {
                 case DVD:
                     writeOk = DVD.validarDatos(input, problems, conexion, false);
                     break;
+                case TESIS:
+                    writeOk = Tesis.validarDatos(input, problems, conexion, false);
+                    break;
                 case USUARIO:
                     writeOk = Usuario.validarDatos(input, problems, conexion, false);
                     break;
@@ -104,6 +110,9 @@ public class GUIAdministrador {
                         case DVD:
                             material = new DVD(codigo, conexion);
                             break;
+                        case TESIS:
+                            material = new Tesis(codigo, conexion);
+                            break;
                         default:
                             material = new Libro(codigo, conexion);
                             break;
@@ -118,6 +127,9 @@ public class GUIAdministrador {
                             break;
                         case DVD:
                             material = new DVD(input);
+                            break;
+                        case TESIS:
+                            material = new Tesis(input);
                             break;
                         default:
                             material = new Libro(input);
@@ -142,7 +154,7 @@ public class GUIAdministrador {
     private void agregar() {
         List<String> textoLabels = List.of("Seleccione el material que desea agregar");
         List<String> textoBotones = List.of("Agregar libro", "Agregar revista", "Agregar CD",
-                "Agregar DVD", "Salir");
+                "Agregar DVD", "Agregar Tesis", "Salir");
         List<String> textoInputs = List.of();
 
         JButton[] botones = new JButton[textoBotones.size()];
@@ -166,6 +178,10 @@ public class GUIAdministrador {
         botones[3].addActionListener(_ -> {
             reset();
             insercionDatos(DVD.getCampos(), tipoDato.DVD);
+        });
+        botones[4].addActionListener(_ -> {
+            reset();
+            insercionDatos(Tesis.getCampos(), tipoDato.TESIS);
         });
         botones[4].addActionListener(_ -> {
             reset();
@@ -215,6 +231,9 @@ public class GUIAdministrador {
                             break;
                         case "DVD":
                             actualizacionDatos(DVD.getCampos(), tipoDato.DVD, codigo);
+                            break;
+                        case "TES":
+                            actualizacionDatos(Tesis.getCampos(), tipoDato.TESIS, codigo);
                             break;
                         default:
                             reset();
@@ -283,6 +302,9 @@ public class GUIAdministrador {
                 case DVD:
                     writeOk = DVD.validarDatos(input, problems, conexion, true);
                     break;
+                case TESIS:
+                    writeOk = Tesis.validarDatos(input, problems, conexion, true);
+                    break;
                 case USUARIO:
                     writeOk = Usuario.validarDatos(input, problems, conexion, false);
                     break;
@@ -306,6 +328,9 @@ public class GUIAdministrador {
                             break;
                         case DVD:
                             material = new DVD(input);
+                            break;
+                        case TESIS:
+                            material = new Tesis(input);
                             break;
                         default:
                             GUI.logger.warn(
@@ -443,6 +468,7 @@ public class GUIAdministrador {
                     conexion.ejecutarInstruccionNoResult("DELETE FROM dvd WHERE idMaterial = '" + codigo + "'");
                     conexion.ejecutarInstruccionNoResult("DELETE FROM unidad WHERE idMaterial = '" + codigo + "'");
                     conexion.ejecutarInstruccionNoResult("DELETE FROM material WHERE idMaterial = '" + codigo + "'");
+                    conexion.ejecutarInstruccionNoResult("DELETE FROM tesis WHERE idMaterial = '" + codigo + "'");
                     conexion.ejecutarInstruccionNoResult("DELETE FROM usuarios WHERE carnet = '" + codigo + "'");
 
                     //mensaje de eliminacion
@@ -534,9 +560,11 @@ public class GUIAdministrador {
 
             String prefijo = codigo.substring(0, 3).toUpperCase();
 
+            ResultSet rs;
+
             switch (prefijo) {
                 case "LIB" -> {
-                    var rs = conexion.ejecutarInstruccion("SELECT * FROM libro WHERE idMaterial = '" + codigo + "'");
+                    rs = conexion.ejecutarInstruccion("SELECT * FROM libro WHERE idMaterial = '" + codigo + "'");
                     if (rs.next()) {
                         sb.append("\nTipo          : Libro\n");
                         sb.append("Autor         : ").append(rs.getString("autor")).append("\n");
@@ -549,7 +577,7 @@ public class GUIAdministrador {
                 }
 
                 case "REV" -> {
-                    var rs = conexion.ejecutarInstruccion("SELECT * FROM revista WHERE idMaterial = '" + codigo + "'");
+                    rs = conexion.ejecutarInstruccion("SELECT * FROM revista WHERE idMaterial = '" + codigo + "'");
                     if (rs.next()) {
                         sb.append("\nTipo             : Revista\n");
                         sb.append("Editorial        : ").append(rs.getString("editorial")).append("\n");
@@ -560,7 +588,7 @@ public class GUIAdministrador {
                 }
 
                 case "CDA" -> {
-                    var rs = conexion.ejecutarInstruccion("SELECT * FROM cd WHERE idMaterial = '" + codigo + "'");
+                    rs = conexion.ejecutarInstruccion("SELECT * FROM cd WHERE idMaterial = '" + codigo + "'");
                     if (rs.next()) {
                         sb.append("\nTipo               : CD\n");
                         sb.append("Artista            : ").append(rs.getString("artista")).append("\n");
@@ -572,7 +600,7 @@ public class GUIAdministrador {
                 }
 
                 case "DVD" -> {
-                    var rs = conexion.ejecutarInstruccion("SELECT * FROM dvd WHERE idMaterial = '" + codigo + "'");
+                    rs = conexion.ejecutarInstruccion("SELECT * FROM dvd WHERE idMaterial = '" + codigo + "'");
                     if (rs.next()) {
                         sb.append("\nTipo     : DVD\n");
                         sb.append("Director : ").append(rs.getString("director")).append("\n");
@@ -582,11 +610,30 @@ public class GUIAdministrador {
                     conexion.closeResulset();
                 }
 
+                case "TES" -> {
+                    rs = conexion.ejecutarInstruccion("SELECT * FROM tesis WHERE idMaterial = '" + codigo + "'");
+                    if (rs.next()) {
+                        sb.append("\nTipo     : Tesis\n");
+                        sb.append("autor : ").append(rs.getString("autor")).append("\n");
+                        sb.append("carrera   : ").append(rs.getString("carrera")).append("\n");
+                        sb.append("Año de Publicación : ").append(rs.getInt("ano_publicacion")).append(" \n");
+                    }
+                    conexion.closeResulset();
+                }
+
                 default ->
                     sb.append("\nTipo: Desconocido\n");
             }
 
-        } catch (Exception ex) {
+            rs = conexion.ejecutarInstruccion("SELECT * FROM material WHERE idMaterial = '" + codigo + "'");
+            if (rs.next()) {
+                sb.append("Numero de clasificacion   : ").append(rs.getString("numero_clasificacion")).append("\n");
+                sb.append("Codigo de ubicacion   : ").append(rs.getString("codigo_ubicacion")).append("\n");
+            }
+            
+            conexion.closeResulset();
+
+        } catch (SQLException ex) {
             sb.append("\n\nNota: No se pudieron cargar algunos detalles.");
         }
 

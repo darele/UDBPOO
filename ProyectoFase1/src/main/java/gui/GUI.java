@@ -17,7 +17,11 @@ import java.util.List;
 
 public class GUI {
 
+    /********************OJO*************************/
+    //En la vida real, esto tampoco se hace, nuevamente
+    //Solo lo hacemos para que le compile
     private static final String salt = "Rafael Torres ";
+    
     public static final Logger logger = LogManager.getLogger();
 
     protected final Conexion conexion;

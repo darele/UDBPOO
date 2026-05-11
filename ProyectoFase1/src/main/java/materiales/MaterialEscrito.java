@@ -7,18 +7,20 @@ import java.util.List;
 public abstract class MaterialEscrito extends Material {
     protected String editorial;
 
-    public MaterialEscrito(String codigo, String titulo, String editorial) {
-        super(codigo, titulo);
+    public MaterialEscrito(String codigo, String titulo, 
+            String editorial, int numero_clasificacion, int codigo_ubicacion) {
+        super(codigo, titulo, numero_clasificacion, codigo_ubicacion);
         this.editorial = editorial;
     }
 
-    protected static boolean validarDatos(String codigo, String titulo, List<String> problems) {
-        return Material.validarDatos(codigo, titulo, problems);
+    protected static boolean validarDatos(String codigo, String titulo,
+            String numero_clasificacion, String codigo_ubicacion, List<String> problems) {
+        return Material.validarDatos(codigo, titulo, numero_clasificacion, codigo_ubicacion, problems);
     }
 
     @Override
-    public void writeSelfToDB(Conexion conexion) {
-        super.writeSelfToDB(conexion);
+    public boolean writeSelfToDB(Conexion conexion) {
+        return super.writeSelfToDB(conexion);
     }
     
     @Override

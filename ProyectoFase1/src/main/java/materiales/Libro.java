@@ -6,6 +6,7 @@ import gui.GUI;
 import javax.swing.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Libro extends MaterialEscrito {
@@ -14,7 +15,7 @@ public class Libro extends MaterialEscrito {
     private final int numeroPaginas, anoPublicacion;
     private static final String nombreTabla = "libro";
     private static final List<String> campos
-            = List.of("Código", "Título", "Autor", "Número de Páginas",
+            = List.of("Autor", "Número de Páginas",
                     "editorial", "ISBN", "Año de Publicación");
 
     public Libro(String codigo, Conexion conexion) {
@@ -22,6 +23,7 @@ public class Libro extends MaterialEscrito {
         String titulo = "", editorial = "";
         String autor = "", isbn = "";
         int numeroPaginas = -1, anoPublicacion = -1;
+        int numero_clasificacion = -1, codigo_ubicacion = -1;
         try {
             result = conexion.ejecutarInstruccion("SELECT * FROM " + nombreTabla + " WHERE idMaterial = \"" + codigo + "\";");
             if (result.next()) {
@@ -30,6 +32,8 @@ public class Libro extends MaterialEscrito {
                 numeroPaginas = result.getInt("numPaginas");
                 anoPublicacion = result.getInt("anoPublicacion");
                 editorial = result.getString("editorial");
+                numero_clasificacion = result.getInt("numero_clasificacion");
+                codigo_ubicacion = result.getInt("codigo_ubicacion");
             } else {
                 GUI.logger.error("No se pudo acceder al libro con codigo: {}", codigo);
             }
@@ -50,17 +54,19 @@ public class Libro extends MaterialEscrito {
         this.isbn = isbn;
         this.autor = autor;
         this.numeroPaginas = numeroPaginas;
-        super(codigo, titulo, editorial);
+        super(codigo, titulo, editorial, numero_clasificacion, codigo_ubicacion);
     }
 
     public Libro(JTextField[] input) {
         String codigo = input[0].getText().trim();
         String titulo = input[1].getText().trim();
-        String autor = input[2].getText().trim();
-        int numeroPaginas = Integer.parseInt(input[3].getText());
-        String editorial = input[4].getText().trim(), isbn = input[5].getText().trim();
-        int anoPublicacion = Integer.parseInt(input[6].getText());
-        super(codigo, titulo, editorial);
+        int numero_clasificacion = Integer.parseInt(input[2].getText());
+        int codigo_ubicacion = Integer.parseInt(input[3].getText());
+        String autor = input[4].getText().trim();
+        int numeroPaginas = Integer.parseInt(input[5].getText());
+        String editorial = input[6].getText().trim(), isbn = input[7].getText().trim();
+        int anoPublicacion = Integer.parseInt(input[8].getText());
+        super(codigo, titulo, editorial, numero_clasificacion, codigo_ubicacion);
         this.autor = autor;
         this.numeroPaginas = numeroPaginas;
         this.isbn = isbn;
@@ -68,44 +74,32 @@ public class Libro extends MaterialEscrito {
     }
 
     @Override
-    public void writeSelfToDB(Conexion conexion) {
-        int unidades = 0;
-        ResultSet result;
-        result = conexion.ejecutarInstruccion("SELECT numeroUnidades FROM unidad WHERE idMaterial = \"" + super.codigo + "\";");
-        try {
-            if (!result.next()) {
-                unidades = 0;
-            } else {
-                unidades = result.getInt(1);
-            }
-        } catch (SQLException e) {
-            GUI.logger.error("Error de acceso", e);
+    public boolean writeSelfToDB(Conexion conexion) {
+        if (super.writeSelfToDB(conexion)) {
+            conexion.ejecutarInstruccionNoResult(
+                    "INSERT INTO " + nombreTabla + "(autor, numPaginas, editorial, isbn, anoPublicacion, idMaterial) "
+                    + "VALUES (\"" + autor + "\",\"" + numeroPaginas + "\",\"" + super.editorial + "\",\"" + isbn
+                    + "\"," + anoPublicacion + ",\"" + super.codigo + "\");"
+            );
         }
-        if (unidades > 0) {
-            conexion.ejecutarInstruccionNoResult("UPDATE unidad SET "
-                    + "numeroUnidades=" + (unidades + 1)
-                    + " WHERE idMaterial=\"" + super.codigo + "\"");
-            return;
-        }
-        super.writeSelfToDB(conexion);
-        conexion.ejecutarInstruccionNoResult(
-                "INSERT INTO unidad(numeroUnidades, idMaterial) "
-                + "VALUES (" + (unidades + 1) + ",\"" + super.codigo + "\");"
-        );
-        conexion.ejecutarInstruccionNoResult(
-                "INSERT INTO " + nombreTabla + "(autor, numPaginas, editorial, isbn, anoPublicacion, idMaterial) "
-                + "VALUES (\"" + autor + "\",\"" + numeroPaginas + "\",\"" + super.editorial + "\",\"" + isbn
-                + "\"," + anoPublicacion + ",\"" + super.codigo + "\");"
-        );
+        return true;
     }
 
     public static List<String> getCampos() {
-        return campos;
+        List<String> ans = new ArrayList<>(Material.getCampos());
+        ans.addAll(campos);
+        return ans;
     }
 
+    
+    //TODO
+    //La posicion en input de numero_clasificacion y codigo_ubicacion esta mal
+    //
     public static boolean validarDatos(JTextField[] input, List<String> problems, Conexion conexion, boolean strict) {
         String codigo = input[0].getText().trim(), titulo = input[1].getText().trim();
-        String autor = input[2].getText().trim();
+        String numero_clasificacion = input[2].getText();
+        String codigo_ubicacion = input[3].getText();
+        String autor = input[4].getText().trim();
 
         if (!strict) {
             if (hayUnidades(codigo, conexion)) {
@@ -113,17 +107,17 @@ public class Libro extends MaterialEscrito {
             }
         }
 
-        boolean ans = MaterialEscrito.validarDatos(codigo, titulo, problems);
+        boolean ans = MaterialEscrito.validarDatos(codigo, titulo, numero_clasificacion, codigo_ubicacion, problems);
 
         try {
-            Integer.parseInt(input[3].getText());
+            Integer.parseInt(input[5].getText());
         } catch (NumberFormatException ignored) {
             ans = false;
             problems.add("El campo Número de Páginas debe ser un numero entero");
         }
-        String editorial = input[4].getText().trim(), isbn = input[5].getText().trim();
+        String editorial = input[6].getText().trim(), isbn = input[7].getText().trim();
         try {
-            Integer.parseInt(input[6].getText());
+            Integer.parseInt(input[8].getText());
         } catch (NumberFormatException ignored) {
             ans = false;
             problems.add("El campo Año de Publicación debe ser un numero entero");
