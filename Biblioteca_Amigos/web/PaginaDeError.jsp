@@ -16,7 +16,7 @@
         <h2>Un error inesperado ha ocurrido!</h2>
         <p><strong>Mensaje:</strong> <%= exception != null ? exception.getMessage() : "Unknown error"%></p>
 
-        <a href="index.jsp">Return to Home</a>
+        <a href="\Biblioteca_Amigos\index.html">Return to Home</a>
 
         <%
             Logger logger = Logger.getLogger("PaginaDeError.jsp");

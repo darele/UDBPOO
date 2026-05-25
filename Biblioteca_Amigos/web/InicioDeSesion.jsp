@@ -4,76 +4,30 @@
     Author     : pdarw
 --%>
 
+<%@page import="utils.Init"%>
 <%@page import="utils.TipoUsuario"%>
 <%@page import="java.util.HashMap"%>
 <%@page import="java.util.List"%>
-<%@page import="conexion.Conexion"%>
 <%@page import="java.util.Map"%>
-<%@page import="java.util.logging.Level"%>
-<%@page import="java.util.logging.Logger"%>
-<%@page import="java.security.NoSuchAlgorithmException"%>
-<%@page import="java.nio.charset.StandardCharsets"%>
-<%@page import="java.security.MessageDigest"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page errorPage="PaginaDeError.jsp" %>
 
-<%! 
-    Logger logger = Logger.getLogger("MyJSPLogger");
-    Conexion conexion = new Conexion();
-%>
-
-<%!
-    String salt = "Rafael Torres ";
-    String encriptar(String contrasena) {
-        byte[] contrasenaCifradaBytes = null;
-        try {
-            contrasenaCifradaBytes = MessageDigest.getInstance("SHA-256").digest(
-                    (salt + contrasena).getBytes(StandardCharsets.UTF_8)
-            );
-        } catch (NoSuchAlgorithmException e) {
-            logger.log(Level.WARNING, "Error al encriptar la contrasena ", e);
-            return "";
-        }
-        StringBuilder hexString = new StringBuilder();
-        for (byte b : contrasenaCifradaBytes) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) hexString.append('0');
-            hexString.append(hex);
-        }
-        return hexString.toString();
-    }
-
-    Map<String, String> validarUserPassword(String username, String password) {
-        Map<String, String> usuario = conexion.select("usuarios",
-                "WHERE username='" + username + "'",
-                List.of("username", "password", "rol"));
-        Map<String, String> ans = new HashMap<>();
-        if (usuario.isEmpty()) {
-            ans.put("errores1", "Usuario o contrasena incorrectos");
-            return ans;
-        }
-        if (usuario.containsKey("errores")) {
-            ans.put("errores2", usuario.get("errores"));
-            return ans;
-        }
-
-        String contrasena = password;
-        String contrasenaCifrada = encriptar(contrasena);
-        String contrasenaReal = usuario.get("password");
-        if (contrasenaCifrada.equals(contrasenaReal)) {
-            ans = usuario;
-            return ans;
-        }
-        ans.put("errores1", "Usuario o contrasena incorrectos");
-        return ans;
+<%
+    String action = request.getParameter("action");
+    
+    if ("cancel".equals(action)) {
+        // Execute Java code here
+        session.removeAttribute("tempData");
+        session.removeAttribute("formDraft");
+        session.removeAttribute("carnet");
+        System.out.println("User cancelled operation - cleaned up session");
     }
 %>
 
 <%  
+    Init.initDB();
     String username = request.getParameter("username");
     String password = request.getParameter("password");
     String errorMsg = "";
-    
 
     if ("POST".equalsIgnoreCase(request.getMethod()) && username != null) {
         
@@ -81,7 +35,7 @@
             errorMsg = "Los campos no pueden estar vacios";
         } else {
             
-            Map<String, String> valido = validarUserPassword(username, password);
+            Map<String, String> valido = Init.validarUserPassword(username, password);
             String pagina;
             if (valido.containsKey("rol")) {
                 switch (valido.get("rol")) {
@@ -98,10 +52,10 @@
                         pagina = "MenuUsuario.jsp";
                         break;
                 }
+                session.setAttribute("carnet", valido.get("carnet"));
                 response.sendRedirect(pagina);
             } else {
                 errorMsg = valido.getOrDefault("errores1", "error");
-                errorMsg += valido.getOrDefault("errores2", " otro error");
             }
         }
     }
@@ -119,10 +73,6 @@
     <div class="login-container">
         <h1>Login</h1>
 
-        <div class="error-message">
-            <%= !errorMsg.isEmpty() ? errorMsg : "" %>
-        </div>
-
         <form action="InicioDeSesion.jsp" method="POST">
             
             <div class="form-group">
@@ -133,6 +83,10 @@
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div class="form-group">
+                <p><%= !errorMsg.isEmpty() ? errorMsg : "" %><p>
             </div>
             
             <button type="submit" class="btn-login">Login</button>
