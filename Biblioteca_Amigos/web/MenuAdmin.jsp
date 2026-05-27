@@ -38,11 +38,11 @@
         <section class="menu-section">
             <h2>Materiales</h2>
             <ul class="menu-list">
-                <li><a href="materialAdd.jsp">Agregar Material</a></li>
-                <li><a href="materialModify.jsp">Modificar Material</a></li>
-                <li><a href="materialList.jsp">Listar Materiales</a></li>
-                <li><a href="materialSearch.jsp">Buscar Material</a></li>
-                <li><a href="materialDelete.jsp">Eliminar Material</a></li>
+                <li><a href="materialPages/materialAdd.jsp">Agregar Material</a></li>
+                <li><a href="materialPages/materialModify.jsp">Modificar Material</a></li>
+                <li><a href="materialPages/materialList.jsp">Listar Materiales</a></li>
+                <li><a href="materialPages/materialSearch.jsp">Buscar Material</a></li>
+                <li><a href="materialPages/materialDelete.jsp">Eliminar Material</a></li>
             </ul>
         </section>
         

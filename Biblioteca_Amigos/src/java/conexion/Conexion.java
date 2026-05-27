@@ -27,7 +27,7 @@ public class Conexion {
         Connection tempConexion = null;
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            tempConexion = DriverManager.getConnection("jdbc:mysql://localhost:3306/biblioteca_amigos", "root", "");
+            tempConexion = DriverManager.getConnection("jdbc:mysql://localhost:3306/", "root", "");
             tempComando = tempConexion.createStatement();
         } catch (SQLException | ClassNotFoundException e) {
             logger.log(Level.SEVERE, "Error al inicializar la conexion: ", e);

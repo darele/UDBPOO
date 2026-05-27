@@ -15,7 +15,6 @@
     String action = request.getParameter("action");
     
     if ("cancel".equals(action)) {
-        // Execute Java code here
         session.removeAttribute("tempData");
         session.removeAttribute("formDraft");
         session.removeAttribute("carnet");

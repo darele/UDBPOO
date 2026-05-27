@@ -126,17 +126,18 @@ public class Init {
 
         conexion.ejecutarInstruccionNoResult(
                 "CREATE TABLE IF NOT EXISTS material(" +
-                        "idMaterial VARCHAR(8) PRIMARY KEY," +
-                        "titulo VARCHAR(45) NOT NULL,"
+                        "idMaterial INT PRIMARY KEY AUTO_INCREMENT," +
+                        "titulo VARCHAR(45) NOT NULL UNIQUE,"
                         + "numero_clasificacion INT NOT NULL,"
-                        + "codigo_ubicacion INT NOT NULL" +
+                        + "codigo_ubicacion INT NOT NULL, "
+                        + "prefijo VARCHAR(3)" +
                         ");"
         );
         
         conexion.ejecutarInstruccionNoResult(
                 "CREATE TABLE IF NOT EXISTS unidad(" +
                         "numeroUnidades INT," +
-                        "idMaterial VARCHAR(8) REFERENCES material(idMaterial)" +
+                        "idMaterial INT REFERENCES material(idMaterial)" +
                         ");"
         );
         conexion.ejecutarInstruccionNoResult(
@@ -146,7 +147,7 @@ public class Init {
                         "editorial VARCHAR(45) NOT NULL," +
                         "isbn VARCHAR(13) NOT NULL," +
                         "anoPublicacion INT," +
-                        "idMaterial VARCHAR(8) REFERENCES material(idMaterial)" +
+                        "idMaterial INT REFERENCES material(idMaterial)" +
                         ");"
         );
         conexion.ejecutarInstruccionNoResult(
@@ -154,7 +155,7 @@ public class Init {
                         "editorial VARCHAR(45) NOT NULL," +
                         "periodicidad INT," +
                         "fechaPublicacion DATE," +
-                        "idMaterial VARCHAR(8) REFERENCES material(idMaterial)" +
+                        "idMaterial INT REFERENCES material(idMaterial)" +
                         ");"
         );
         conexion.ejecutarInstruccionNoResult(
@@ -163,7 +164,7 @@ public class Init {
                         "genero VARCHAR(45) NOT NULL," +
                         "duracion INT," +
                         "numeroCanciones INT," +
-                        "idMaterial VARCHAR(8) REFERENCES material(idMaterial)" +
+                        "idMaterial INT REFERENCES material(idMaterial)" +
                         ");"
         );
         conexion.ejecutarInstruccionNoResult(
@@ -171,7 +172,7 @@ public class Init {
                         "director VARCHAR(45) NOT NULL," +
                         "duracion INT," +
                         "genero VARCHAR(45)," +
-                        "idMaterial VARCHAR(8) REFERENCES material(idMaterial)" +
+                        "idMaterial INT REFERENCES material(idMaterial)" +
                         ");"
         );
         conexion.ejecutarInstruccionNoResult(
@@ -179,7 +180,7 @@ public class Init {
                         "autor VARCHAR(45) NOT NULL," +
                         "carrera VARCHAR(45) NOT NULL," +
                         "ano_publicacion INT," +
-                        "idMaterial VARCHAR(8) REFERENCES material(idMaterial)" +
+                        "idMaterial INT REFERENCES material(idMaterial)" +
                         ");"
         );
     }
